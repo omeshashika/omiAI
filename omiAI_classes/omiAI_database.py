@@ -124,3 +124,7 @@ class omiDB:
 
     def loadedFragments(self):
         return len(self.loadedFiles.keys())
+    
+    def unloadAllFragments(self):
+        self.saveAll()
+        self.loadedFiles = {}
