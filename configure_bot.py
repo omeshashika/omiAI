@@ -34,13 +34,14 @@ def get_user_input(prompt, default_value=None, input_type=str):
         else:
             return default_value or []
     else:
-        return user_input if user_input else default_value
+        return user_input.strip() if user_input else default_value
 
 
 def configure_models():
     """Configure AI models section."""
     print("\n--- Model Configuration ---")
     print("You can configure one or more AI models for the bot.")
+    print("Press enter to skip a parameter and set it to default")
     
     models = []
     model_count = 0
@@ -51,12 +52,12 @@ def configure_models():
         
         model_id = get_user_input(
             f"Enter model ID (e.g., qwen3:1.7b)",
-            f"qwen3:{model_count}.0b"
+            "gemma3n:e2b"
         )
         
         title = get_user_input(
             f"Enter model title (e.g., Qwen 3 {model_count}.0B)",
-            f"Qwen 3 {model_count}.0B"
+            model_id
         )
         
         api_url = get_user_input(
@@ -101,7 +102,7 @@ def main():
     
     # Basic settings
     print("--- Basic Configuration ---")
-    config["token"] = get_user_input("Enter your Discord bot token", "Your token here")
+    config["token"] = get_user_input("Enter your Discord bot token", "None")
     config["baseDir"] = get_user_input("Enter base directory for data", "omiAI_data")
     
     # Models configuration
@@ -116,10 +117,10 @@ def main():
         config["defaultModel"] = get_user_input("Enter default model ID", "qwen3:1.7b")
     
     # Fallback API settings
-    print("\n--- Fallback API Configuration ---")
+    print("\n--- Default API Configuration ---")
     config["defaultAPIurl"] = get_user_input(
         "Enter default API URL (used if not specified in models)",
-        "https://api.openai.com/v1/chat/completions"
+        "ollama"
     )
     config["defaultAPIkey"] = get_user_input(
         "Enter default API key (leave empty if not needed)"
@@ -128,7 +129,7 @@ def main():
     # Streaming and system settings
     print("\n--- Behavior Settings ---")
     config["doStreaming"] = get_user_input("Enable streaming responses? (y/n)", "true", bool)
-    config["systemPromptFix"] = get_user_input("Enable system prompt fix? (y/n)", "false", bool)
+    config["systemPromptFix"] = False
     
     # Discord settings
     print("\n--- Discord Configuration ---")
@@ -142,31 +143,26 @@ def main():
         )
         config["discordAllowedGuilds"] = guild_list
     else:
-        config["discordAllowedGuilds"] = ["provide IDs/ID of allowed discord servers", "11231231231"]
+        config["discordAllowedGuilds"] = []
     
-    owner_id = get_user_input("Enter your Discord user ID", "your discord ID here")
+    owner_id = get_user_input("Enter your Discord user ID", "")
     config["discordBotOwnerID"] = owner_id
     
     config["useStatusesInsteadOfModel"] = get_user_input(
         "Use custom statuses instead of showing model name? (y/n)",
-        "false",
+        False,
         bool
     )
     
     if config["useStatusesInsteadOfModel"]:
         status_texts = get_user_input(
             "Enter status texts separated by commas",
-            "omiAI is thinking,Processing request,Ready to chat",
+            "thinking, ready to talk",
             list
         )
         config["discordStatuses"] = status_texts
     else:
-        config["discordStatuses"] = [
-            "texts that bot will have as their status",
-            "omiAI will randomly change it's status to one of these every 30 min",
-            "ignore if you have useStatusesInsteadOfModel set to false"
-        ]
-    
+        config["discordStatuses"] = []
     # Memory and performance settings
     print("\n--- Memory and Performance Settings ---")
     config["secondsBetweenMessageUpdates"] = get_user_input(
@@ -176,7 +172,7 @@ def main():
     )
     config["numOfMessagesInMemory"] = get_user_input(
         "Number of messages to keep in memory",
-        30,
+        40,
         int
     )
     config["experimentalCompressedMemory"] = get_user_input(
@@ -190,7 +186,7 @@ def main():
         bool
     )
     config["hoursBetweenMemorySaves"] = get_user_input(
-        "Hours between memory saves",
+        "Hours between full memory saves",
         1,
         int
     )
@@ -199,7 +195,7 @@ def main():
     config["APIOptions"] = {}
     
     # Write configuration to file
-    output_file = "config.json"
+    output_file = "config_default.json"
     print(f"\n--- Saving Configuration ---")
     print(f"Configuration will be saved to '{output_file}'")
     
@@ -208,7 +204,7 @@ def main():
     
     print(f"\n✅ Configuration successfully saved to '{output_file}'!")
     print("\nTo use this configuration with the bot:")
-    print("1. Make sure the file is named 'config.json' in the bot's directory")
+    print("1. Make sure the file is named 'config_default.json' in the bot's directory")
     print("2. Review the generated file to ensure all settings are correct")
     print("3. Run the bot using 'python omiAI_V2.py'")
     
