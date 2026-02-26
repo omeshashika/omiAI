@@ -195,7 +195,11 @@ def main():
     config["APIOptions"] = {}
     
     # Write configuration to file
-    output_file = "config_default.json"
+    print("Name the config file.")
+    print("If you want the config load by default, put '_default' at the end.")
+    print("Example: omiAI_default.cfg")
+    output_file = (get_user_input("Name:") + ".cfg").removesuffix(".cfg")
+
     print(f"\n--- Saving Configuration ---")
     print(f"Configuration will be saved to '{output_file}'")
     
