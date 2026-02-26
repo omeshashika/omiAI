@@ -119,7 +119,7 @@ def main():
     # Fallback API settings
     print("\n--- Default API Configuration ---")
     config["defaultAPIurl"] = get_user_input(
-        "Enter default API URL (used if not specified in models)",
+        "Enter default API URL (used if not specified in models, skip if it's Ollama)",
         "ollama"
     )
     config["defaultAPIkey"] = get_user_input(
@@ -166,23 +166,23 @@ def main():
     # Memory and performance settings
     print("\n--- Memory and Performance Settings ---")
     config["secondsBetweenMessageUpdates"] = get_user_input(
-        "Seconds between message updates",
+        "Seconds between message updates when streaming",
         1,
         int
     )
     config["numOfMessagesInMemory"] = get_user_input(
-        "Number of messages to keep in memory",
+        "Number of messages to keep in context",
         40,
         int
     )
     config["experimentalCompressedMemory"] = get_user_input(
         "Use experimental compressed memory? (y/n)",
-        "false",
+        True,
         bool
     )
     config["autogenUserProfiles"] = get_user_input(
         "Auto-generate user profiles? (y/n)",
-        "false",
+        True,
         bool
     )
     config["hoursBetweenMemorySaves"] = get_user_input(
