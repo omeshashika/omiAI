@@ -1,17 +1,9 @@
 from omiAI_classes.omiAI_utils import util
 
-example = {
-    "header": "omiAI * omiAI_default.cfg * Gemma 3N E2B",
-    "LLM status": ['Inference', '69.67 t/s'],
-    "Memory": ['56 fragments', 'Saving in <60 s.'],
-    "Status": ['Exception@DB:', 'Could not get user data'],
-    "footer": ['Uptime', 0]
-}
-
 class omiAIconsole:
     def __init__(self, config):
         self.config = config
-        self.filename = self.config.filename.split('.')[0]
+        self.filename = self.config.filename.split('.')[0].removesuffix('_default')
         self.header = f'omiAI base • {self.filename} • {self.config.getModelDisplayName(self.config.currModel)}'
         self.uptime = 0
 
