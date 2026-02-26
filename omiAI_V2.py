@@ -95,7 +95,7 @@ class OmiAICore:
 
             except Exception as e:
                 await message.add_reaction('❌')
-                printt(f'Failed to reload:')
+                printt(f'Failed to reload: {e}')
                 print()
 
         return
@@ -112,7 +112,21 @@ class OmiAICore:
                 self._disp.updateMemoryStatus(self._memory.getFragmentCount(), "0 s.", override='Forced save')
             except Exception as e:
                 await message.add_reaction('❌')
-                printt(f'Failed to save memory:')
+                printt(f'Failed to save memory: {e}')
+                print()
+
+        return
+    
+
+    async def saveMemoryCommand(self, message, command='omiAIbase.clearBuffer'):
+        if str(message.author.id) == self._config.ownerID and message.content.strip().startswith(command):
+            try:
+                self._database.unloadAllFragments()
+
+                await message.add_reaction('✅')
+            except Exception as e:
+                await message.add_reaction('❌')
+                printt(f'Failed to clear buffer: {e}')
                 print()
 
         return
