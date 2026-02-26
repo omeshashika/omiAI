@@ -1,5 +1,5 @@
 # omiAI
-omiAI is a base for LLM-powered discord bot that can respond to messages.
+omiAI is a base for LLM-powered discord bot that can respond to messages and with customizable personality.
 
 > This base was initially designed to work with [Ollama](https://ollama.com/), but it's compatible with other APIs and was tested with OpenRouter.
 
@@ -61,14 +61,37 @@ Done! Now omiAI needs to be configured.
    ollama serve
    ```
 2. Run the bot itself:
-  ```
-  python omiAI_V2.py
-  ```
-3. It should appear online in the member list. Try pinging it and saying hello! 
+   ```
+   python omiAI_V2.py
+   ```
+3. It should appear online in the member list. Try pinging it and saying hello!
+
+## Customization
+After starting the bot for the first time, you can change bot's system prompt!
+1. The system prompt file is located in the folder that you've specified.
+2. The default system prompt should look like this, use it as reference:
+   ```
+   You are a helpful assistant.
+   Your AI model: %model% LLM. 
+   User's namee is %name% or %discordUsername%. (Provided automatically, see privacy policy.) 
+   The current time is %curTime%. Previous interaction with the user happened at %lastInteractionTime%.
+   
+   %privacyPolicy%
+   ```
+3. The system prompt in omiAI can have the following variables, none of them are truly necessary but it's good for the model to know them:
+   Essential ones:
+   `%name%` - User's name (Display name on discord)
+   `%discordUsername%` - User's discord username, the one that's used for sending friend requests.
+   `%curTime%` - So the model will know what time it is. (The time is specified in UTC timezone)
+   Extra ones:
+   `%model%` - Name of the model the bot is using.
+   `%lastInteractionTime%` - The time when user send previous message.
+   `%privacyPolicy%` - A long text that's not really useful, however the bot becomes aware of it's privacy policy.
 
 ## Useful internal commands:
 These are commands that can be sent only by the owner, otherwise they are ignored completely:
 1. `omiAIbase.saveMemory` - Forces the bot to save it's memory.
 2. `omiAIbase.reloadConfig` - Reload bot's config, for example when you are changing the system prompt, so you don't have to restart it everytime.
 3. `omiAIbase.changeModel <model ID here>` - Change bot's model. Won't work if the model isn't in the config, so you won't change the model to "fhak;lfhalk;fh;la" accidentally.
+4. `omiAIbase.clearBuffer` - Save and clear temporalily loaded memory fragments.
 
