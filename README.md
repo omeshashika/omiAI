@@ -3,6 +3,15 @@ omiAI is a base for LLM-powered discord bot that can respond to messages and wit
 
 > This base was initially designed to work with [Ollama](https://ollama.com/), but it's compatible with other APIs and was tested with OpenRouter.
 
+### Features
+1. Fully customizable personality
+2. Flexible configuration
+3. Ollama and (partial) external API support
+4. Response streaming (the response is updated as it's generated)
+Features that will be implemented:
+1. Context compression (Bot will auto-generate summaries of conversation)
+2. ChatGPT-style memories
+
 # How to setup
 ## Setting up discord bot
 1. Create the bot itself, if you don't know how to do that, please google it.
@@ -17,15 +26,15 @@ omiAI is a base for LLM-powered discord bot that can respond to messages and wit
 5. Done! Now let's setup the bot itself.
 
 ## Getting omiAI itself
-1. First of all, if you will be using this with Ollama, check if you have Ollama installed and some models. You can check both things by simply executing doing:
+1. First of all, if you will be using this with Ollama, check if you have Ollama installed and if you have some models. You can check both things by simply executing:
    ```
    ollama list
    ```
-   If not, install it (installation instructions can be found on https://ollama.com/) and download a model:
+   If not, install Ollama (installation instructions can be found on https://ollama.com/) and download a model:
    ```
    ollama pull gemma3n:e2b
    ```
-   (Or pick your own model, the one in the example is a small, yet pretty good model)
+   (Or any other model that fits you)
 
 ### Linux
 2. Clone the repository:
@@ -45,8 +54,8 @@ omiAI is a base for LLM-powered discord bot that can respond to messages and wit
    ```
 
 ### Windows
-1. Download repository (Either manually or using `git`) and extract it in any folder you like
-2. Open Terminal in the same folder where you put it and install requirements:
+1. Download repository (Either manually or using `git`)
+2. Open Terminal in the same folder where you have omiAI and install requirements:
    ```
    python -m pip install -r requirements.txt
    ```
@@ -56,7 +65,7 @@ Done! Now omiAI needs to be configured.
 2. If you need to tweak the config, edit the generated file.
 
 ## Running and using the bot
-1. Once you've done all the preparations, make sure Ollama is running (if you're using it), if not, start Ollama server:
+1. Once you've done all the preparations, make sure Ollama is running, if not, start Ollama server: (Skip if using external API)
    ```
    ollama serve
    ```
@@ -67,7 +76,7 @@ Done! Now omiAI needs to be configured.
 3. It should appear online in the member list. Try pinging it and saying hello!
 
 ## Customization
-After starting the bot for the first time, you can change bot's system prompt!
+omiAI base has feature for customizing the system prompt, thus customizing it's personality and etc
 1. The system prompt file is located in the folder that you've specified.
 2. The default system prompt should look like this, use it as reference:
    ```
