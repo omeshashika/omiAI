@@ -25,7 +25,7 @@ class systemPrompt:
     def default():
         return """You are a helpful assistant.
 Your AI model: %model% LLM. 
-User's namee is %name% or %discordUsername%. (Provided automatically, see privacy policy.) 
+User's name is %name% or %discordUsername%. (Provided automatically, see privacy policy.) 
 The current time is %curTime%. Previous interaction with the user happened at %lastInteractionTime%.
 
 %privacyPolicy%"""
