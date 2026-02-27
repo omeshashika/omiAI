@@ -14,40 +14,40 @@ class AIConfig:
         self.filename = file.replace('/', '\\').split('\\')[-1]
 
         # discord
-        self.token = self.cfg["token"]
-        self.statusIsText = self.cfg['useStatusesInsteadOfModel']
-        self.customStatuses = self.cfg['discordStatuses']
-        self.allowDMs = self.cfg['discordAllowDM']
-        self.ownerID = self.cfg['discordBotOwnerID']
-        self.guildLock = self.cfg["discordGuildLock"]
-        self.allowedGuilds = self.cfg["discordAllowedGuilds"]
+        self.token = self.cfg.get("token")
+        self.statusIsText = self.cfg.get('useStatusesInsteadOfModel', False)
+        self.customStatuses = self.cfg.get('discordStatuses')
+        self.allowDMs = self.cfg.get('discordAllowDM', True)
+        self.ownerID = self.cfg.get('discordBotOwnerID')
+        self.guildLock = self.cfg.get("discordGuildLock", False)
+        self.allowedGuilds = self.cfg.get("discordAllowedGuilds")
 
         # AI config
-        self.defaultAPIurl = self.cfg["defaultAPIurl"]
-        self.defaultAPIkey = self.cfg['defaultAPIkey']
+        self.defaultAPIurl = self.cfg.get("defaultAPIurl", "ollama")
+        self.defaultAPIkey = self.cfg.get('defaultAPIkey', '-')
 
-        self.currModel = self.cfg['defaultModel']
-        self.genOptions = self.cfg['APIOptions']
+        self.currModel = self.cfg.get('defaultModel', self.cfg.get("models")[0].get("id"))
+        self.genOptions = self.cfg.get('APIOptions', {})
 
-        self.fixSystemPrompt = self.cfg["systemPromptFix"]
+        self.fixSystemPrompt = self.cfg.get("systemPromptFix", False)
 
         if self.fixSystemPrompt:
             printt("NOTE: systemPromptFix is enabled, it should be only used if A: You are using external API; B: You get errors from the provider.")
 
         if not any(model.get('id') == self.currModel for model in self.cfg['models']): 
-            printt(f'!!! !!! WARNING: Model {self.currModel} not in model list! You probably will encounter issues! if the model in defaultModelID is not valid.')
+            printt(f'!!! WARNING: Model {self.currModel} not in model list! You probably will encounter issues! if the model in defaultModelID is not valid.')
 
         # UI
-        self.doStreaming = self.cfg['doStreaming']
-        self.secondsPerUpd = self.cfg['secondsBetweenMessageUpdates']
+        self.doStreaming = self.cfg.get('doStreaming', True)
+        self.secondsPerUpd = self.cfg.get('secondsBetweenMessageUpdates', 1)
         
         # memory
-        self.historyLen = self.cfg['numOfMessagesInMemory']
-        self.doLists = self.cfg['experimentalCompressedMemory']
-        self.historySavePeriod = self.cfg['hoursBetweenMemorySaves']
+        self.historyLen = self.cfg('numOfMessagesInMemory', 30)
+        self.doLists = self.cfg('experimentalCompressedMemory', True)
+        self.historySavePeriod = self.cfg('hoursBetweenMemorySaves', 6)
 
         # paths
-        self.baseDir = str( Path(file).parent.resolve() / self.cfg['baseDir'] )
+        self.baseDir = str( Path(file).parent.resolve() / self.cfg.get("baseDir", "omiAI_Data") )
         os.makedirs(self.baseDir, exist_ok=True)
 
         self.pathsSystemPrompt = self.baseDir + "/systemPrompt.txt"
