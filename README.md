@@ -8,7 +8,8 @@ omiAI is a base for LLM-powered discord bot that can respond to messages and wit
 2. Flexible configuration
 3. Ollama and (partial) external API support
 4. Response streaming (the response is updated as it's generated)
-Features that will be implemented:
+
+Planned features:
 1. Context compression (Bot will auto-generate summaries of conversation)
 2. ChatGPT-style memories
 
