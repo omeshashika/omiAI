@@ -46,6 +46,7 @@ Planned features:
    (or any other way to download the repository)
 3. Run the installation script:
    ```
+   chmod +x setup.sh
    ./setup.sh
    ```
    or these commands:
@@ -73,7 +74,8 @@ Done! Now omiAI needs to be configured.
    ```
 2. Run the bot itself:
    ```
-   python omiAI_V2.py
+   chmod +x run.sh
+   ./run.sh
    ```
 3. It should appear online in the member list. Try pinging it and saying hello!
 
