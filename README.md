@@ -38,9 +38,10 @@ Planned features:
    (Or any other model that fits you)
 
 ### Linux
-2. Clone the repository:
+2. Assuming you have python already installed, clone the repository:
    ```
    git clone https://github.com/omeshashika/omiAI.git
+   cd omiAI
    ```
    (or any other way to download the repository)
 3. Run the installation script:
