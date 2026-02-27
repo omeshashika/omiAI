@@ -129,7 +129,6 @@ def main():
     # Streaming and system settings
     print("\n--- Behavior Settings ---")
     config["doStreaming"] = get_user_input("Enable streaming responses? (y/n)", "true", bool)
-    config["systemPromptFix"] = False
     
     # Discord settings
     print("\n--- Discord Configuration ---")
@@ -176,12 +175,12 @@ def main():
         int
     )
     config["experimentalCompressedMemory"] = get_user_input(
-        "Use experimental compressed memory? (y/n)",
+        "Can bot compress it's context? (Auto-generate summaries to use less tokens) (y/n)",
         True,
         bool
     )
     config["autogenUserProfiles"] = get_user_input(
-        "Auto-generate user profiles? (y/n)",
+        "Can bot have ChatGPT-like memories? (y/n)",
         True,
         bool
     )
@@ -198,7 +197,7 @@ def main():
     print("Name the config file.")
     print("If you want the config load by default, put '_default' at the end.")
     print("Example: omiAI_default.cfg")
-    output_file = (get_user_input("Name:") + ".cfg").removesuffix(".cfg")
+    output_file = (get_user_input("Name:").removesuffix(".cfg") + ".cfg")
 
     print(f"\n--- Saving Configuration ---")
     print(f"Configuration will be saved to '{output_file}'")
@@ -208,13 +207,13 @@ def main():
     
     print(f"\n✅ Configuration successfully saved to '{output_file}'!")
     print("\nTo use this configuration with the bot:")
-    print("1. Make sure the file is named 'config_default.json' in the bot's directory")
+    print(f"1. Make sure the file is named '{output_file}' in the bot's directory")
     print("2. Review the generated file to ensure all settings are correct")
     print("3. Run the bot using 'python omiAI_V2.py'")
     
     # Show a preview of the important settings
     print(f"\n📋 Configuration Preview:")
-    print(f"- Token: {'*' * len(config['token']) if config['token'] != 'Your token here' else 'NOT SET'}")
+    print(f"- Token: {'*' * len(config['token']) if config['token'] != 'None' else 'NOT SET'}")
     print(f"- Base Directory: {config['baseDir']}")
     print(f"- Number of Models: {len(config['models'])}")
     print(f"- Default Model: {config['defaultModel']}")
