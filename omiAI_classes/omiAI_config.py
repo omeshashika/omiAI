@@ -42,9 +42,9 @@ class AIConfig:
         self.secondsPerUpd = self.cfg.get('secondsBetweenMessageUpdates', 1)
         
         # memory
-        self.historyLen = self.cfg('numOfMessagesInMemory', 30)
-        self.doLists = self.cfg('experimentalCompressedMemory', True)
-        self.historySavePeriod = self.cfg('hoursBetweenMemorySaves', 6)
+        self.historyLen = self.cfg.get('numOfMessagesInMemory', 30)
+        self.doLists = self.cfg.get('experimentalCompressedMemory', True)
+        self.historySavePeriod = self.cfg.get('hoursBetweenMemorySaves', 6)
 
         # paths
         self.baseDir = str( Path(file).parent.resolve() / self.cfg.get("baseDir", "omiAI_Data") )
