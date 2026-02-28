@@ -170,7 +170,7 @@ class OmiAICore:
                     shouldRespond = True
 
                     if replyTo.reference:
-                        inreplyReference = await message.channe.fetch_message(replyTo.reference.message_id)
+                        inreplyReference = await message.channel.fetch_message(replyTo.reference.message_id)
 
                         if not inreplyReference.author == self._bot.user:
                             shouldCite = replyTo
@@ -188,7 +188,7 @@ class OmiAICore:
     def getCitation(self, citation):
         if citation:
             if citation.author == self._bot.user:
-                return citation.content.strip(), "you (you were replying to another user)"
+                return citation.content.strip(), "assistant (Assistant was replying to another user)"
 
             return citation.content.strip(), citation.author.global_name
 
