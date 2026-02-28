@@ -20,7 +20,8 @@ class omiAIconsole:
             self.contents['LLM status'] = [status, f"{tps} tokens/s"]
         else:
             self.contents['LLM status'] = [status, f"{tps:.2f} tokens/s"]
-        
+
+        self.tableDraw()
             
 
     def updateMemoryStatus(self, fragments, savetime=None, override=None):
@@ -46,6 +47,7 @@ class omiAIconsole:
 
         for key, value in tbl.items():
             if key == 'header':
+                value = util.truncateText(value, 47)
                 table.append( f"+{'-' * 49}+" )
                 table.append( f": {value:<47} :" )
                 table.append( f"+{'-' * 49}+" )

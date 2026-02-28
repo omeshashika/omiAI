@@ -32,7 +32,7 @@ class OmiAICore:
         self._database = omiDB(self._config.baseDir)
         self._memory = AIMemory(self._config, self._database)
         self._ai = self._aisysLink(self._config, self._memory)
-        self._memory.linkAI(self._ai)
+        self._memory.linkAI(self._ai) # link AI to memory since how do you link AI before it can be initialized 
 
         self._intents = discord.Intents.default()
         self._intents.message_content = True
@@ -42,17 +42,6 @@ class OmiAICore:
         self._tree = app_commands.CommandTree(self._bot)
 
         self._firstTimeSaving = True
-
-    
-    def parseBuffer(self, chunk, buffer):
-        buffer += chunk
-
-        pattern = r'<think>.*?</think>'
-
-        # if buffer.strip().startswith("<think>"):
-        #     return re.sub(pattern, '', buffer.strip(), flags=re.DOTALL), buffer
-        
-        return buffer.strip(), buffer
         
 
     async def slashMessageUpdater(self, interaction, content, messages):
@@ -155,38 +144,55 @@ class OmiAICore:
         return
 
 
-    async def doResponseChecks(self, message):
-        if message.content.startswith('omiAIbase.'):
-            return False
+    async def manageMessage(self, message):
+        shouldRespond = False
+        shouldCite = None
 
-        if message.author == self._bot.user:
-           return False
-        
-        if message.author.bot:
-            return False
-        
+        if message.content.startswith('omiAIbase.') or message.author == self._bot.user or message.author.bot:
+            return False, None
+
         if message.guild is None:
-            return self._config.allowDMs
+            shouldRespond = self._config.allowDMs
         elif not message.guild.id in self._config.allowedGuilds and self._config.guildLock:
-            return False
+            return False, None
         
         if not message.content.replace(f'<@{self._bot.user.id}>', '').strip():
-            return False
+            return False, None
 
         if self._bot.user in message.mentions:
-            return True
+            shouldRespond = True
 
         if message.reference:
             try:
                 replyTo = await message.channel.fetch_message(message.reference.message_id)
+
                 if replyTo.author == self._bot.user:
-                    return True
+                    shouldRespond = True
+
+                    if replyTo.reference:
+                        inreplyReference = await message.channe.fetch_message(replyTo.reference.message_id)
+
+                        if not inreplyReference.author == self._bot.user:
+                            shouldCite = replyTo
+                else:
+                    shouldCite = replyTo
+
             except discord.NotFound:
                 printt("Message not found (Deleted?)")
             except discord.HTTPException as e:
                 printt(f"Error: {e}")
             
-        return False
+        return shouldRespond, shouldCite
+    
+    
+    def getCitation(self, citation):
+        if citation:
+            if citation.author == self._bot.user:
+                return citation.content.strip(), "you (you were replying to another user)"
+
+            return citation.content.strip(), citation.author.global_name
+
+        return None, None
 
 
     def _setupCommands(self):
@@ -203,10 +209,16 @@ class OmiAICore:
             await self.saveMemoryCommand(message)
             await self.changeModelCommand(message)
 
-            if await self.doResponseChecks(message):
+            shouldRespond, shouldCitate = await self.manageMessage(message)
+            citationContent, citationAuthor = self.getCitation(shouldCitate)
+            
+            if shouldRespond:
                 userID = message.author.id
                 chatID = str(message.channel.id)
-                userMessage = message.content.replace(f'<@{self._bot.user.id}>', '').strip()
+                userMessage = util.includeCitation(
+                    message.content.replace(f'<@{self._bot.user.id}>', '').strip(),
+                    citation=citationContent, author=citationAuthor
+                )
 
                 self._memory.updUserInfo(
                     userID, 
@@ -215,29 +227,21 @@ class OmiAICore:
                 )
                 
                 response = ''
-                buffer = ''
                 responseTime = 0
                 messages = []
                 startTime = time.perf_counter()
                 self._disp.updateLMStatus("Preparing", '-')
-                self._disp.tableDraw()
                 
                 try:
                     async with message.channel.typing(): 
                         async for chunk in self._ai.generateResponse( self._memory.getSession(userID, chatID, userMessage) ):
-                            response, buffer = self.parseBuffer(
-                                self._ai.decodeChunk(chunk),
-                                buffer
-                            )
-                            # print(response)
-                            # print(self._ai.decodeChunk(chunk), end='', flush=True) # Debug
+                            response += self._ai.decodeChunk(chunk)
+                            response = util.removeThinking(response)
+
                             responseTime += time.perf_counter() - startTime
                             
-                            currTPS = 1 / (time.perf_counter() - startTime) 
-                            if currTPS < 300:
-                                self._disp.updateLMStatus("Generating", currTPS)
-                            self._disp.tableDraw()
-                            startTime = time.perf_counter()
+                            currTPS, startTime = 1 / (time.perf_counter() - startTime), time.perf_counter()
+                            self._disp.updateLMStatus("Generating", currTPS)
 
                             if responseTime > self._config.secondsPerUpd and self._config.doStreaming:
                                 messages = await self.discordMessageUpdater(
@@ -251,22 +255,18 @@ class OmiAICore:
                             util.lenghtSplit(response), 
                             messages
                         )
-                        # print()
                         
                         self._memory.addMessage(userID, chatID, 'user', userMessage)
                         self._memory.addMessage(userID, chatID, 'assistant', response.strip())
 
                         self._memory.editUserParameter(userID, 'lastInteractionTime', date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'))
-                        self._memory.unloadStep()
                 except Exception as e:
                     print(f"Error: {e}")
 
-                # print(self._memory.memory) # Debug
                 self._disp.updateLMStatus("Idling", '-')
-                self._disp.tableDraw()
+            # Broo why is this code such a nested mess???
 
-
-            return
+            return 
         
         
         @self._tree.command(name='chat', description='chat with me')
@@ -280,30 +280,23 @@ class OmiAICore:
 
             self._memory.updUserInfo(userID, interaction.user.global_name, interaction.user.name)
             
-            response, buffer = '', ''
+            response = ''
             responseTime = 0
             messages = []
 
             startTime = time.perf_counter()
             self._disp.updateLMStatus("Preparing", '-')
-            self._disp.tableDraw()
             await interaction.response.defer()
 
             try:
                 async for chunk in self._ai.generateResponse( self._memory.getSession(userID, chatID, message) ):
-                    response, buffer = self.parseBuffer(
-                        self._ai.decodeChunk(chunk),
-                        buffer 
-                    )
-                    # print(self._ai.decodeChunk(chunk), end='', flush=True) # Debug
+                    response += self._ai.decodeChunk(chunk)
+                    response = util.removeThinking(response)
 
                     responseTime += time.perf_counter() - startTime
                     
-                    currTPS = 1 / (time.perf_counter() - startTime)
-                    if currTPS < 300:
-                        self._disp.updateLMStatus("Generating", currTPS)
-                    self._disp.tableDraw()
-                    startTime = time.perf_counter()
+                    currTPS, startTime = 1 / (time.perf_counter() - startTime), time.perf_counter()
+                    self._disp.updateLMStatus("Generating", currTPS)
 
                     if responseTime > self._config.secondsPerUpd and self._config.doStreaming:
                         messages = await self.slashMessageUpdater(
@@ -324,13 +317,11 @@ class OmiAICore:
                 self._memory.addMessage(userID, chatID, 'assistant', response.strip())
 
                 self._memory.editUserParameter(userID, 'lastInteractionTime', date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'))
-                self._memory.unloadStep()
             except Exception as e:
                 print(f"Error: {e}")
 
             # print(self._memory.memory) # Debug
             self._disp.updateLMStatus("Idling", '-')
-            self._disp.tableDraw()
 
 
         @self._tree.command(name="delete_chat", description='delete your chat in this channel')
@@ -353,6 +344,7 @@ class OmiAICore:
                 self._memory.deleteChat(userID, chatIDnormal)
                 await btn_interaction.followup.send(content='wiped normal memory', ephemeral=True)
 
+
             async def slashButtonFn(btn_interaction: discord.Interaction):
                 await btn_interaction.response.defer(ephemeral=True)
                 await btn_interaction.delete_original_response()
@@ -360,9 +352,11 @@ class OmiAICore:
                 self._memory.deleteChat(userID, chatIDnormal)
                 await btn_interaction.followup.send(content='wiped /chat memory', ephemeral=True)
 
+
             async def cancelButtonFn(btn_interaction: discord.Interaction):
                 await btn_interaction.response.defer(ephemeral=True)
                 await btn_interaction.delete_original_response()
+
 
             if not slashExists and not normalExists:
                 await interaction.followup.send("you don't any chats here")
@@ -392,8 +386,8 @@ class OmiAICore:
         @app_commands.user_install()
         @app_commands.guild_install()
         @app_commands.choices(reasoning=[
-            app_commands.Choice(name='Enabled', value=1),
-            app_commands.Choice(name='Disabled', value=0)
+            app_commands.Choice(name='Enabled (Smarter)', value=1),
+            app_commands.Choice(name='Disabled (Faster)', value=0)
         ])
         async def reasoning_command(interaction: discord.Interaction, reasoning: int):
             self._memory.editUserParameter(

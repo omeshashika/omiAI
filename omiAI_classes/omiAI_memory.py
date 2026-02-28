@@ -20,7 +20,7 @@ class AIMemory:
                 file.write(systemPrompt.default())
 
         self.listMemory = self.cfg.doLists
-        self.historyLenWithLists = 8 # 8 messages since list-memory thing will replace long-term memory, TODO: finetune the value, i guess? NOTE: vro what the fuck are you talking about ts is not implemented yet nga 🙏🙏🙏🛐
+        self.historyLenWithLists = 8
         self.historyLen = self.cfg.historyLen
 
     def linkAI(self, AI):

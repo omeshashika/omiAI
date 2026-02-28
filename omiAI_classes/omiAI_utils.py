@@ -216,3 +216,19 @@ class util:
         string += f"{hours:02d}:{minutes:02d}:{final_seconds:02d}"
 
         return string
+    
+    @staticmethod
+    def includeCitation(message, citation=None, author=None):
+        if citation:
+            return message + f'\n\n<system>\nThe user is referecing a message by {author}: \n"{citation}"\n</system>"'
+        
+        return message
+    
+    @staticmethod
+    def removeThinking(string):
+        cleared = re.sub(r'<think>.*?</think>', "", string)
+
+        if string.startswith("<think>") and not cleared:
+            return ""
+        
+        return cleared

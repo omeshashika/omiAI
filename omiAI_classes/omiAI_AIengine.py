@@ -64,18 +64,21 @@ class AIsystem:
     def decodeChunk(self, chunk):
         try:
             if "message" in chunk:
-                return chunk["message"].get("content")
+                return chunk.get("message").get("content")
             
             elif "messages" in chunk:
-                return chunk["messages"][0].get("content")
+                return chunk.get("messages")[0].get("content")
             
             elif "choices" in chunk:
-                return chunk["choices"][0]["delta"].get("content")
+                return chunk.get("choices")[0].get("delta").get("content")
+            
+            elif "response" in chunk:
+                return chunk.get("response")
             
             else:
                 if 'error' in chunk:
-                    print(chunk['error'].get('message'))
-                print(chunk)
+                    print(chunk.get("error").get('message', 'Unknown Error Occured'))
+                # print(chunk)
 
         except Exception as e:
             # printt(f"Failed: {e}")
