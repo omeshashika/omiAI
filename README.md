@@ -108,3 +108,5 @@ These are commands that can be sent only by the owner, otherwise they are ignore
 3. `omiAIbase.changeModel <model ID here>` - Change bot's model. Won't work if the model isn't in the config, so you won't change the model to "fhak;lfhalk;fh;la" accidentally.
 4. `omiAIbase.clearBuffer` - Save and clear temporalily loaded memory fragments.
 
+# Note
+If you're actually going to use this project and download it, please do not be afraid to tell me about any issues.
