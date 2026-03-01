@@ -43,7 +43,8 @@ class AIConfig:
         
         # memory
         self.historyLen = self.cfg.get('numOfMessagesInMemory', 30)
-        self.doLists = self.cfg.get('experimentalCompressedMemory', True)
+        self.doSummaries = self.cfg.get('experimentalCompressedMemory', True)
+        self.doProfiles = self.cfg.get('experimentalCompressedMemory', True)
         self.historySavePeriod = self.cfg.get('hoursBetweenMemorySaves', 6)
 
         # paths

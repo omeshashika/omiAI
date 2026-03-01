@@ -19,20 +19,25 @@ class AIMemory:
             with open(self.cfg.pathsSystemPrompt, 'w', encoding='utf-8') as file:
                 file.write(systemPrompt.default())
 
-        self.listMemory = self.cfg.doLists
+        self.listMemory = self.cfg.doSummaries
         self.historyLenWithLists = 8
         self.historyLen = self.cfg.historyLen
 
     def linkAI(self, AI):
         self.ai = AI
 
-    def getSystemPrompt(self, userID):
+    def getSystemPrompt(self, userID, chatID):
         templates = {
             '%model%': self.cfg.getModelDisplayName(self.ai.currentModel),
+
             '%curTime%': date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'),
+
             '%name%': self.getUserParameter(userID, 'name', 'Unknown'),
+            
             '%discordUsername%': self.getUserParameter(userID, 'usertag', 'Unknown'),
+            
             '%lastInteractionTime%': self.getUserParameter(userID, 'lastInteractionTime', 'Unknown'),
+
             '%privacyPolicy%': privacyPolicy.getPolicy(self.ai.isOllama(self.ai.currentModel))
         }
 
@@ -58,6 +63,8 @@ class AIMemory:
             value = util.obfuscateString("None")
         elif isinstance(value, str):
             value = util.obfuscateString(value)
+        elif isinstance(value, list):
+            value = util.obfuscateArray(value)
 
         if self.database.fileExists(path):
             userdata = self.database.loadFile(path)
@@ -73,8 +80,16 @@ class AIMemory:
 
         if self.database.fileExists(path):
             userdata = self.database.loadFile(path)
+
             if param in userdata:
-                return util.deobfuscateString(userdata[param])
+                data = userdata.get(param)
+
+                if isinstance(data, str):
+                    return util.deobfuscateString(data)
+                elif isinstance(data, list):
+                    return util.deobfuscateArray(data)
+                else:
+                    return data
             
         return defaultVal
 
@@ -90,7 +105,7 @@ class AIMemory:
 
         file = util.processID(f'{UserID}-{ChatID}')
         path = ['db', 'conversations', file]
-        lenLimit = (self.historyLenWithLists if self.listMemory else self.historyLen) * 2 # store more messages than bot can see
+        lenLimit = (self.historyLenWithLists if self.listMemory else self.historyLen) * 2 # since we have to account for user-assistant turns
         messages = []
         
         if self.database.fileExists(path):
@@ -105,7 +120,6 @@ class AIMemory:
         
 
     def getMessages(self, UserID, ChatID):
-        systemPrompt = self.getSystemPrompt(UserID)
         UserID = str(UserID)
         ChatID = str(ChatID)
 
@@ -113,13 +127,6 @@ class AIMemory:
         path = ['db', 'conversations', file]
         lenLimit = self.historyLenWithLists if self.listMemory else self.historyLen
         history = []
-        
-        if self.cfg.fixSystemPrompt and not self.ai.isOllama(self.ai.currentModel):
-            userQ = f'From now you should follow this system prompt: \n\n{systemPrompt}'
-            history = [{'role': 'user', 'content': userQ}, {'role': 'assistant', 'content': 'Okay! I will follow this system prompt from now on.'}]
-
-        else:
-            history = [{'role': 'system', 'content': systemPrompt}]
 
         if self.database.fileExists(path):
             messages = self.database.loadFile(path)
@@ -131,14 +138,32 @@ class AIMemory:
             
         return history
     
+
+    def getSummary(self, UserID, ChatID):
+        UserID = str(UserID)
+        ChatID = str(ChatID)
+        summary = []
+
+        file = util.processID(f'summary_{UserID}-{ChatID}')
+        path = ['db', 'conversations', file]
+
+        if self.database.fileExists(path):
+            summary.extend(
+                util.deobfuscateArray(self.database.loadFile(path))
+            )
+
+
     def saveMemory(self):
         self.database.saveAll()
     
+
     def unloadStep(self):
         self.database.decreaseLifetime()
     
+
     def getFragmentCount(self):
         return self.database.loadedFragments()
+
 
     def chatExists(self, UserID, ChatID):
         UserID = str(UserID)
@@ -147,6 +172,7 @@ class AIMemory:
         file = util.processID(f'{UserID}-{ChatID}')
         path = ['db', 'conversations', file]
         return self.database.fileExists(path)
+
 
     def deleteChat(self, UserID, ChatID):
         UserID = str(UserID)
@@ -157,11 +183,19 @@ class AIMemory:
 
         self.database.deleteFile(path)
 
-    def getSession(self, userID, chatID, userMSG=None):
-        context = self.getMessages(userID, chatID)
-        reason = self.getUserParameter(userID, 'reasoning', True)
 
+    def getSession(self, userID, chatID, userMSG=None):
+        reason = self.getUserParameter(userID, 'reasoning', True)
+        systemPrompt = self.getSystemPrompt(userID, chatID)
+
+        if self.cfg.fixSystemPrompt and not self.ai.isOllama(self.ai.currentModel):
+            userQ = f'From now you should follow this system prompt: \n\n{systemPrompt}'
+            context = [{'role': 'user', 'content': userQ}, {'role': 'assistant', 'content': 'Okay! I will follow this system prompt from now on.'}]
+        else:
+            context = [{'role': 'system', 'content': systemPrompt}]
+
+        context.extend(self.getMessages(userID, chatID))
         if userMSG:
             context.append({"role": "user", "content": userMSG})
 
-        return self.ai.assembleRequest(context)
+        return self.ai.assembleRequest(context, think=reason)

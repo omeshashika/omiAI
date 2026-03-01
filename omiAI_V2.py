@@ -256,10 +256,10 @@ class OmiAICore:
                             messages
                         )
                         
-                        self._memory.addMessage(userID, chatID, 'user', userMessage)
-                        self._memory.addMessage(userID, chatID, 'assistant', response.strip())
-
-                        self._memory.editUserParameter(userID, 'lastInteractionTime', date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'))
+                    self._memory.addMessage(userID, chatID, 'user', userMessage)
+                    self._memory.addMessage(userID, chatID, 'assistant', response.strip())
+                    
+                    self._memory.editUserParameter(userID, 'lastInteractionTime', date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'))
                 except Exception as e:
                     print(f"Error: {e}")
 
@@ -448,7 +448,7 @@ class OmiAICore:
                 self._disp.updateMemoryStatus(self._memory.getFragmentCount())
                 self._disp.updateUptime(model=self._ai.getCurrentModel())
 
-            @tasks.loop(minutes=2)
+            @tasks.loop(minutes=1)
             async def decayFragments():
                 self._memory.unloadStep()
             

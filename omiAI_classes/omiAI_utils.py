@@ -13,6 +13,7 @@ class util:
             json.dump(file, f, ensure_ascii=False)
         # print(f"File has been saved succesfully as {filename}!")
 
+
     @staticmethod
     def loadFile(filename):
         try:
@@ -22,6 +23,7 @@ class util:
         except FileNotFoundError:
             print(f"File {filename} not found.")
 
+
     @staticmethod
     def loadFileRaw(filename):
         try:
@@ -30,6 +32,7 @@ class util:
             # print(f"Loaded {filename}")
         except FileNotFoundError:
             print(f"File {filename} not found.")
+
 
     @staticmethod
     def _find_safe_split(text, max_length):
@@ -45,6 +48,7 @@ class util:
         
         # Вынужденный разрыв
         return max_length
+
 
     @staticmethod
     def ensureNeededFiles(basePath='omiAI_Data'):
@@ -69,6 +73,7 @@ class util:
                     else:
                         f.write(content)
     
+
     @staticmethod
     def extractJson(dirty):
         match = re.search(r'\{.*\}', dirty, re.DOTALL)
@@ -83,6 +88,7 @@ class util:
                 return None
         return None
     
+
     @staticmethod
     def processID(ID):
         obfuscatePrefix = "omiAIbase-obf:"
@@ -92,9 +98,10 @@ class util:
             return ID
         else:
             ID = ID.encode('utf-8')
-            processed = hasher.md5(ID)
+            processed = hasher.sha384(ID)
             return obfuscatePrefix + processed.hexdigest()
     
+
     @staticmethod
     def obfuscateString(string):
         obfuscatePrefix = "omiAIbase-obf:"
@@ -106,16 +113,18 @@ class util:
             stringB64 = base64.b64encode(string)
             return obfuscatePrefix + stringB64.decode('utf-8')
     
+
     @staticmethod
     def deobfuscateString(stringB64):
         obfuscatePrefix = "omiAIbase-obf:"
 
-        if stringB64.startswith(obfuscatePrefix):
+        if str(stringB64).startswith(obfuscatePrefix):
             string = base64.b64decode(stringB64.removeprefix(obfuscatePrefix))
             return string.decode('utf-8')
         else:
             return stringB64
     
+
     @staticmethod
     def deobfuscateMessages(chat):
         output = []
@@ -129,26 +138,41 @@ class util:
                     )
                 })
             except Exception as e:
-                print("watafak", e )
+                print("Error while trying to deobfuscate: ", e )
 
         return output
     
+
+    @staticmethod
+    def obfuscateArray(array):
+        return [util.obfuscateString(s) for s in array]
+    
+
+    @staticmethod
+    def deobfuscateArray(array):
+        return [util.deobfuscateString(s) for s in array]
+    
+
     @staticmethod
     def removeObfPrefix(string):
         obfuscatePrefix = "omiAIbase-obf:"
         return string.removeprefix(obfuscatePrefix)
     
+
+    @staticmethod
     def removeObfPrefixes(filepath):
         obfuscatePrefix = "omiAIbase-obf:"
 
         return [p.removeprefix(obfuscatePrefix) for p in filepath]
     
+
     @staticmethod
     def hashify(thingToHash):
         thingToHash = str(thingToHash)
         theHash = hasher.md5(thingToHash.encode('utf-8'))
         return str(theHash.hexdigest())
     
+
     @staticmethod
     def lenghtSplit(text, lenght=2000, divider='\n'):
         if len(text) < lenght:
@@ -178,15 +202,18 @@ class util:
 
         return [divider.join(chunk) for chunk in truncated if chunk]
     
+
     @staticmethod
     def niceProgressBar(cur, max, text="Please wait...", elements=50):
         percentage = min(1, cur / max)
         print(f"\r{text} <" + ("#" * math.floor(percentage * elements)) + "-" * ( elements - math.floor(percentage * elements)) + f"> {math.floor(percentage * 1000)/10}/100%", flush=False, end = '')
 
+
     @staticmethod
     def niceTokenSpeedBar(cur, max, text="Please wait...", elements=50):
         percentage = min(1, cur / max)
         print(f"\r> [API] {text} <" + ("#" * math.floor(percentage * elements)) + "-" * ( elements - math.floor(percentage * elements)) + f"> {math.floor(cur * 10)/10} t/s" + " " * 10, flush=False, end = '')
+
 
     @staticmethod
     def formatPath(baseDir, path):
@@ -196,6 +223,7 @@ class util:
         else:
             return baseDir + "/" + path + ".json"
     
+
     @staticmethod
     def truncateText(text, maxLen):
         if len(text) <= maxLen:
@@ -203,6 +231,7 @@ class util:
         else:
             return text[:maxLen-3] + '...' 
         
+
     @staticmethod
     def timeToString(time):
         days, remaining_hours = divmod(time, 86400)
@@ -217,6 +246,7 @@ class util:
 
         return string
     
+
     @staticmethod
     def includeCitation(message, citation=None, author=None):
         if citation:
@@ -224,6 +254,7 @@ class util:
         
         return message
     
+
     @staticmethod
     def removeThinking(string):
         cleared = re.sub(r'<think>.*?</think>', "", string)
@@ -232,3 +263,34 @@ class util:
             return ""
         
         return cleared
+    
+
+    @staticmethod
+    def makeList(inputList, header=None):
+        newList = []
+
+        if header:
+            newList.append(header)
+
+        if inputList:
+            for num, entry in inputList:
+                newList.append(f'{num+1}. {entry}')
+        else:
+            newList.append('<Empty>')
+
+        return "\n".join(newList)
+    
+    @staticmethod
+    def formatChatHistory(chatHistory, truncateAssistant=False):
+        output = []
+        
+        for msg in chatHistory:
+            content = msg.get("content")
+            role = msg.get("role")
+
+            if role == "assistant" and truncateAssistant:
+                output.append(f'{role}:\n"{util.truncateText(content, 25)}"')
+            else:
+                output.append(f'{role}:\n"{content}"')
+
+        return "\n".join(output)

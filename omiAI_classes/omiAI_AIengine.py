@@ -55,10 +55,10 @@ class AIsystem:
                         try: 
                             yield util.extractJson(line.decode())
                         except Exception as e:
-                            print(f"something's wrong: {e}")
+                            print(f"Error while generating chunk: {e}")
                             continue
         except Exception as e:
-            printt(f"Failed to reach AI API : {e}")
+            printt(f"Failed to reach AI API: {e}")
     
 
     def decodeChunk(self, chunk):
