@@ -11,7 +11,7 @@ omiAI is a base for LLM-powered discord chat-bot with customizable personality.
 
 Planned features:
 1. Context compression (Bot summarizes it's context, making the memory longer and using fewer tokens.)
-2. ChatGPT-style memories
+2. Memories like in ChatGPT. 
 
 # How to setup
 ## Setting up discord bot
