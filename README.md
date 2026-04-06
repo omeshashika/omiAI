@@ -1,16 +1,16 @@
 # omiAI base
 omiAI is a base for LLM-powered discord chat-bot with customizable personality.
 
-> This base was initially designed to work with [Ollama](https://ollama.com/), but it's compatible with other APIs and was tested with OpenRouter.
+> This base was initially designed to work with [Ollama](https://ollama.com/), however it is compatible with OpenAI API and has been tested with OpenRouter. 
 
 ### Features
 1. Fully customizable personality
 2. Flexible configuration
-3. Ollama and (partial) external API support
-4. Response streaming (the response is updated as it's generated)
+3. Ollama and OpenAI compatible. 
+5. Response streaming (the response is updated as it's generated)
 
 Planned features:
-1. Context compression (Bot will auto-generate summaries of conversation)
+1. Context compression (Bot summarizes it's context, making the memory longer and using fewer tokens.)
 2. ChatGPT-style memories
 
 # How to setup
@@ -35,7 +35,7 @@ Planned features:
    ```
    ollama pull gemma3n:e2b
    ```
-   (Or any other model that fits you)
+   (Or any other model that you like)
 
 ### Linux
 2. Assuming you have python already installed, clone the repository:
@@ -64,8 +64,8 @@ Planned features:
    ```
 Done! Now omiAI needs to be configured.
 ## Configuring
-1. Use the provided configuration tool `configure_bot.py` to configure the bot.
-2. If you need to tweak the config, edit the generated file.
+1. Use the provided configuration tool `configure_bot.py` to configure the bot. (Or edit example config manually) 
+2. If you need to tweak the config, edit the config file. 
 
 ## Running and using the bot
 1. Once you've done all the preparations, make sure Ollama is running, if not, start Ollama server: (Skip if using external API)
@@ -93,10 +93,10 @@ omiAI base has feature for customizing the system prompt, thus customizing it's 
    ```
 3. The system prompt in omiAI can have the following variables, none of them are truly necessary but it's good for the model to know them:
    Essential ones:
-   `%name%` - User's name (Display name on discord)
-   `%discordUsername%` - User's discord username, the one that's used for sending friend requests.
-   `%curTime%` - So the model will know what time it is. (The time is specified in UTC timezone)
+   `%name%` - User's name (Discord display name)
+   `%curTime%` - Current time in the UTC time zone. 
    Extra ones:
+   `%discordUsername%` - User's discord username, the one you would use to add friends or @mentioning.
    `%model%` - Name of the model the bot is using.
    `%lastInteractionTime%` - The time when user send previous message.
    `%privacyPolicy%` - A long text that's not really useful, however the bot becomes aware of it's privacy policy.
@@ -106,7 +106,7 @@ These are commands that can be sent only by the owner, otherwise they are ignore
 1. `omiAIbase.saveMemory` - Forces the bot to save it's memory.
 2. `omiAIbase.reloadConfig` - Reload bot's config, for example when you are changing the system prompt, so you don't have to restart it everytime.
 3. `omiAIbase.changeModel <model ID here>` - Change bot's model. Won't work if the model isn't in the config, so you won't change the model to "fhak;lfhalk;fh;la" accidentally.
-4. `omiAIbase.clearBuffer` - Save and clear temporalily loaded memory fragments.
+4. `omiAIbase.clearBuffer` - Saves and clear temporalily loaded memory fragments.
 
 # Note
-If you're actually going to use this project and download it, please do not be afraid to tell me about any issues.
+If you encounter any issues with the project, please let me know. I'll appreciate any feedback. 
