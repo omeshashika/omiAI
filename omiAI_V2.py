@@ -18,8 +18,33 @@ from omiAI_classes.omiAI_consoleTable import omiAIconsole
 
 
 
+# Logger Setup
+enableDebug = True
+parentFolder = Path(__file__).parent.resolve()
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG if enableDebug else logging.INFO)
+
+fileHandler = logging.FileHandler(parentFolder / "omiAI.log", encoding='utf-8')
+fileHandler.setLevel(logging.DEBUG if enableDebug else logging.INFO)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(logging.CRITICAL)
+
+logger.addHandler(fileHandler)
+logger.addHandler(consoleHandler)
+
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+fileHandler.setFormatter(formatter)
+consoleHandler.setFormatter(formatter)
+
+
+
 def printt(string):
     print(f"> [{date.datetime.now().strftime("%H:%M:%S")}] {string}")
+
+
+
 
 
 class OmiAICore:
@@ -72,9 +97,9 @@ class OmiAICore:
     async def reloadConfigCommand(self, message, command='omiAIbase.reload'):
         if str(message.author.id) == self._config.ownerID and message.content.strip().startswith(command):
             try:
-
                 self._config = AIConfig(self.cfgPath)
                 self._memory = AIMemory(self._config, self._database)
+                self._memory.linkAI(self._ai)
 
                 await message.add_reaction('✅')
 
@@ -84,8 +109,7 @@ class OmiAICore:
 
             except Exception as e:
                 await message.add_reaction('❌')
-                printt(f'Failed to reload: {e}')
-                print()
+                logger.error(f"reloadConfig Failed: {e}")
 
         return
 
@@ -101,13 +125,12 @@ class OmiAICore:
                 self._disp.updateMemoryStatus(self._memory.getFragmentCount(), "0 s.", override='Forced save')
             except Exception as e:
                 await message.add_reaction('❌')
-                printt(f'Failed to save memory: {e}')
-                print()
+                logger.error(f"saveMemory Failed: {e}")
 
         return
     
 
-    async def saveMemoryCommand(self, message, command='omiAIbase.clearBuffer'):
+    async def clearBufferCommand(self, message, command='omiAIbase.clearBuffer'):
         if str(message.author.id) == self._config.ownerID and message.content.strip().startswith(command):
             try:
                 self._database.unloadAllFragments()
@@ -115,8 +138,7 @@ class OmiAICore:
                 await message.add_reaction('✅')
             except Exception as e:
                 await message.add_reaction('❌')
-                printt(f'Failed to clear buffer: {e}')
-                print()
+                logger.error(f"clearBuffer Failed: {e}")
 
         return
 
@@ -135,8 +157,7 @@ class OmiAICore:
                     await asyncio.sleep(2)
                     self._disp.updateStatus('OK', '-')
                 except Exception as e:
-                    printt(f"Failed to change model: {e}")
-                    print()
+                    logger.error(f"changeModel Failed: {e}")
                     await message.add_reaction('❌')
             else:
                 await message.add_reaction('❓')
@@ -178,10 +199,10 @@ class OmiAICore:
                     shouldCite = replyTo
 
             except discord.NotFound:
-                printt("Message not found (Deleted?)")
+                logger.error(f"Exception in manageMessage [discord.NotFound]: {e}")
             except discord.HTTPException as e:
-                printt(f"Error: {e}")
-            
+                logger.error(f"Exception in manageMessage [discord.HTTPException]: {e}")
+             
         return shouldRespond, shouldCite
     
     
@@ -195,12 +216,13 @@ class OmiAICore:
         return None, None
 
 
+
     def _setupCommands(self):
-        printt("Setting up commands")
+        logger.info("Setting up commands")
 
         @self._bot.event
         async def on_error(event):
-            printt(f'Error in {event}')
+            logger.error(f'Error in {event}')
             print()
 
         @self._bot.event
@@ -208,6 +230,7 @@ class OmiAICore:
             await self.reloadConfigCommand(message)
             await self.saveMemoryCommand(message)
             await self.changeModelCommand(message)
+            await self.clearBufferCommand(message)
 
             shouldRespond, shouldCitate = await self.manageMessage(message)
             citationContent, citationAuthor = self.getCitation(shouldCitate)
@@ -261,7 +284,7 @@ class OmiAICore:
                     
                     self._memory.editUserParameter(userID, 'lastInteractionTime', date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'))
                 except Exception as e:
-                    print(f"Error: {e}")
+                    logger.error(f"Error in on_message: {e}")
 
                 self._disp.updateLMStatus("Idling", '-')
             # Broo why is this code such a nested mess???
@@ -318,7 +341,7 @@ class OmiAICore:
 
                 self._memory.editUserParameter(userID, 'lastInteractionTime', date.datetime.now(date.timezone.utc).strftime('%H:%M UTC, %a %d %B, %Y'))
             except Exception as e:
-                print(f"Error: {e}")
+                logger.error(f"Error in /chat: {e}")
 
             # print(self._memory.memory) # Debug
             self._disp.updateLMStatus("Idling", '-')
@@ -425,8 +448,7 @@ class OmiAICore:
                         await asyncio.sleep(5)
                         self._disp.updateMemoryStatus(self._memory.getFragmentCount())
                     except Exception as e:
-                        printt(f"Failed to save memory: {e}")
-                        print()
+                        logger.error(f"Error in memorySave loop: {e}")
 
 
             @tasks.loop(minutes=30)
@@ -487,6 +509,11 @@ if __name__ == "__main__":
         defaultCFG.extend(
             glob( str(parentFolder / f'*default{extension}') )
         )
+
+    if not cfgs:
+        msg = f"No config files (*.json, *.cfg) found in {parentFolder}"
+        logger.critical(msg)
+        raise RuntimeError(msg)
 
     if defaultCFG:
         selection = defaultCFG[0]

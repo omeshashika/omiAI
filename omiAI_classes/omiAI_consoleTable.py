@@ -1,5 +1,10 @@
 from omiAI_classes.omiAI_utils import util
 
+import logging
+logger = logging.getLogger(__name__)
+
+# Does this actually need a logger? It's a purely decorative thing.
+
 class omiAIconsole:
     def __init__(self, config):
         self.config = config

@@ -1,6 +1,8 @@
 import json, re, math, aiohttp, os, random, time, asyncio, base64
 import datetime as date
 import hashlib as hasher
+import logging
+logger = logging.getLogger(__name__)
 
 def printt(string):
     print(f"> [{date.datetime.now().strftime("%H:%M:%S")}] {string}")

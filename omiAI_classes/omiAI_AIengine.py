@@ -1,9 +1,12 @@
-import aiohttp
+import aiohttp, os
 import datetime as date
 from omiAI_classes.omiAI_utils import util
 
 def printt(string):
     print(f"> [{date.datetime.now().strftime("%H:%M:%S")}] {string}")
+
+import logging
+logger = logging.getLogger(__name__)
 
 class AIsystem:
     def __init__(self, config, memory):
@@ -46,7 +49,7 @@ class AIsystem:
         headers = {"Authorization": f"Bearer {apikey}"}
         url = self.cfg.getModelProvider(self.currentModel)
         if self.isOllama(self.currentModel):
-            url = 'http://localhost:11434/api/chat'
+            url = f'http://localhost:{os.environ.get("OLLAMA_PORT", 11434)}/api/chat'
 
         try:
             async with aiohttp.ClientSession() as session:
@@ -55,34 +58,33 @@ class AIsystem:
                         try: 
                             yield util.extractJson(line.decode())
                         except Exception as e:
-                            print(f"Error while generating chunk: {e}")
+                            logger.error("Failed to yield util.extractJson(line.decode()): %s", e)
                             continue
         except Exception as e:
-            printt(f"Failed to reach AI API: {e}")
+            logger.error(f"Failed to reach AI API: {e}")
     
 
     def decodeChunk(self, chunk):
         try:
             if "message" in chunk:
-                return chunk.get("message").get("content")
+                return chunk.get("message").get("content", '')
             
             elif "messages" in chunk:
-                return chunk.get("messages")[0].get("content")
+                return chunk.get("messages")[0].get("content", '')
             
             elif "choices" in chunk:
-                return chunk.get("choices")[0].get("delta").get("content")
+                return chunk.get("choices")[0].get("delta").get("content", '')
             
             elif "response" in chunk:
-                return chunk.get("response")
+                return chunk.get("response", '')
             
             else:
                 if 'error' in chunk:
-                    print(chunk.get("error").get('message', 'Unknown Error Occured'))
-                # print(chunk)
+                    logger.critical(chunk.get("error").get('message', 'Unknown Error Occured'))
+                logger.debug("Couldn't retrieve message/messages/choices/response from chunk: %s", str(chunk))
 
         except Exception as e:
-            # printt(f"Failed: {e}")
-            # print(chunk)
+            logger.error("Error while decoding chunk: %s", e)
             pass # ¯\_(ツ)_/¯ commenting this off because some external APIs send empty responses for no reason which causes the console go crazy
         
         return ''

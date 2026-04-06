@@ -7,6 +7,9 @@ from omiAI_classes.omiAI_defaultTexts import privacyPolicy, systemPrompt
 def printt(string):
     print(f"> [{date.datetime.now().strftime("%H:%M:%S")}] {string}")
 
+import logging
+logger = logging.getLogger(__name__)
+
 class AIMemory: 
     def __init__(self, config, database):
         self.cfg = config
@@ -96,8 +99,8 @@ class AIMemory:
 
     def addMessage(self, UserID, ChatID, role, content):
         if not UserID or not ChatID:
-            printt("Incorrect User/Chat ID! Make sure you've set it")
-            raise ValueError
+            logger.critical("AIMemory.addMessagee: Incorrect User/Chat ID! Make sure you've set it")
+            raise ValueError("AIMemory.addMessagee: Incorrect User/Chat ID! Make sure you've set it")
         
         content = util.obfuscateString(content)
         UserID = str(UserID)
