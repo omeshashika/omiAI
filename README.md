@@ -65,7 +65,18 @@ Planned features:
 Done! Now omiAI needs to be configured.
 ## Configuring
 1. Use the provided configuration tool `configure_bot.py` to configure the bot. (Or edit example config manually) 
-2. If you need to tweak the config, edit the config file. 
+2. If you need to tweak the config, edit the config file.
+
+### Updating
+If you want to update omiAI, do the following:
+On Linux:
+```
+cd omiAI
+chmod +x update.sh
+./update.sh
+```
+On Windows:
+Download the repository and copy the files into the folder where omiAI is at.
 
 ## Running and using the bot
 1. Once you've done all the preparations, make sure Ollama is running, if not, start Ollama server: (Skip if using external API)
