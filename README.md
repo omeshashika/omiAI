@@ -104,15 +104,18 @@ omiAI base has feature for customizing the system prompt, thus customizing it's 
    
    %privacyPolicy%
    ```
-3. The system prompt in omiAI can have the following variables, none of them are truly necessary but it's good for the model to know them:
-   Essential ones:
-   `%name%` - User's name (Discord display name)
-   `%curTime%` - Current time in the UTC time zone. 
-   Extra ones:
-   `%discordUsername%` - User's discord username, the one you would use to add friends or @mentioning.
-   `%model%` - Name of the model the bot is using.
-   `%lastInteractionTime%` - The time when user send previous message.
-   `%privacyPolicy%` - A long text that's not really useful, however the bot becomes aware of it's privacy policy.
+3. The system prompt in omiAI can have the following variables, none of them are truly necessary but it's good for the bot to know them:
+   ```
+   Essentials:
+   %name% - User's name (Discord display name)
+   %curTime% - Current time (UTC)
+   
+   Extra variables:
+   %discordUsername% - User's discord username, the one you would use to add friends or @mentioning.
+   %model% - Name of the model the bot is using.
+   %lastInteractionTime% - The time when user send previous message.
+   %privacyPolicy% - A long text that's not really useful, however the bot becomes aware of it's privacy policy.
+   ```
 
 ## Useful internal commands:
 These are commands that can be sent only by the owner, otherwise they are ignored completely:
